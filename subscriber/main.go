@@ -157,6 +157,10 @@ func main() {
 		ordersMap[order.OrderUid] = *order
 		mu.Unlock()
 		err = StoreOrder(db, order)
+		if err != nil {
+			fmt.Printf(err.Error())
+			return
+		}
 		//manual Ack
 		err = msg.Ack()
 		if err != nil {
