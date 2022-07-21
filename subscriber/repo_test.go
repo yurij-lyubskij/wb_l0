@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	sqlxmock "github.com/zhashkevych/go-sqlxmock"
 	"regexp"
@@ -52,7 +51,6 @@ func TestGetOrders(t *testing.T) {
 		OofShard:          "officiis",
 	}
 
-	fmt.Println(strings.Split(orderCols, ","))
 	rows := sqlxmock.NewRows(strings.Split(orderCols, ",")).
 		AddRow(or.OrderUid, or.TrackNumber, or.Entry,
 			or.Locale, or.InternalSignature, or.CustomerId,
@@ -65,6 +63,52 @@ func TestGetOrders(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
 
 	orders, err := GetOrders(db)
+
+	rows = sqlxmock.NewRows(strings.Split(itemCols, ","))
+
+	query = "SELECT " + itemCols +
+		" FROM items ORDER BY orderid"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
+
+	_, err = GetItems(db)
+
+	rows = sqlxmock.NewRows([]string{"orderid", "count(*)"})
+
+	query = "SELECT orderid, count(*)" +
+		" FROM items GROUP BY orderid ORDER BY orderid"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
+
+	_, err = CountItems(db)
+
+	p := or.Payment
+	rows = sqlxmock.NewRows(strings.Split(paymentCols, ",")).
+		AddRow(p.Transaction, p.RequestId,
+			p.Currency, p.Provider, p.Amount, p.PaymentDt,
+			p.Bank, p.DeliveryCost, p.GoodsTotal, p.CustomFee)
+
+	query = "SELECT " + paymentCols +
+		" FROM payment ORDER BY orderid"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
+
+	pay, err := GetPayments(db)
+	orders[0].Payment = pay[0]
+
+	d := or.Delivery
+	rows = sqlxmock.NewRows(strings.Split(deliveryCols, ",")).
+		AddRow(d.Name, d.Phone, d.Zip, d.City,
+			d.Address, d.Region, d.Email)
+
+	query = "SELECT " + deliveryCols +
+		" FROM delivery ORDER BY orderid"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
+
+	deliveries, err := GetDeliveries(db)
+	orders[0].Delivery = deliveries[0]
+
 	assert.NoError(t, err)
 	assert.NotNil(t, orders)
 	assert.Equal(t, orders[0], or)

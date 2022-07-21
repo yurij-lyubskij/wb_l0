@@ -14,8 +14,8 @@ import (
 const itemCols = "chrt_id,track_number,price,rid,name," +
 	"sale,item_size,total_price,nm_id,brand,status"
 
-const paymentCols = "transaction, request_id, currency, provider, amount, payment_dt," +
-	" bank, delivery_cost, goods_total, custom_fee "
+const paymentCols = "transaction,request_id,currency,provider,amount,payment_dt," +
+	"bank,delivery_cost,goods_total,custom_fee"
 
 const deliveryCols = "name,phone,zip,city,address,region,email"
 
