@@ -22,5 +22,5 @@ jobs:
       - run: sudo apt upgrade -y
       - run: sudo apt install golang
       - run: sudo go version
-      - run: sudo cd subscriber
+      - run: sudo ls
       - run: sudo go test
