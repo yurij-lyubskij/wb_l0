@@ -51,63 +51,53 @@ func TestGetOrders(t *testing.T) {
 		OofShard:          "officiis",
 	}
 
-	rows := sqlxmock.NewRows(strings.Split(orderCols, ",")).
+	rows0 := sqlxmock.NewRows(strings.Split(orderCols, ",")).
 		AddRow(or.OrderUid, or.TrackNumber, or.Entry,
 			or.Locale, or.InternalSignature, or.CustomerId,
 			or.DeliveryService, or.Shardkey, or.SmId, or.DateCreated,
 			or.OofShard)
 
-	query := "SELECT " + orderCols +
+	query0 := "SELECT " + orderCols +
 		" FROM orders ORDER BY order_uid"
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
+	mock.ExpectQuery(regexp.QuoteMeta(query0)).WillReturnRows(rows0)
 
-	orders, err := GetOrders(db)
+	d := or.Delivery
+	rows1 := sqlxmock.NewRows(strings.Split(deliveryCols, ",")).
+		AddRow(d.Name, d.Phone, d.Zip, d.City,
+			d.Address, d.Region, d.Email)
 
-	rows = sqlxmock.NewRows(strings.Split(itemCols, ","))
+	query1 := "SELECT " + deliveryCols +
+		" FROM delivery ORDER BY orderid"
 
-	query = "SELECT " + itemCols +
-		" FROM items ORDER BY orderid"
-
-	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
-
-	_, err = GetItems(db)
-
-	rows = sqlxmock.NewRows([]string{"orderid", "count(*)"})
-
-	query = "SELECT orderid, count(*)" +
-		" FROM items GROUP BY orderid ORDER BY orderid"
-
-	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
-
-	_, err = CountItems(db)
+	mock.ExpectQuery(regexp.QuoteMeta(query1)).WillReturnRows(rows1)
 
 	p := or.Payment
-	rows = sqlxmock.NewRows(strings.Split(paymentCols, ",")).
+	rows2 := sqlxmock.NewRows(strings.Split(paymentCols, ",")).
 		AddRow(p.Transaction, p.RequestId,
 			p.Currency, p.Provider, p.Amount, p.PaymentDt,
 			p.Bank, p.DeliveryCost, p.GoodsTotal, p.CustomFee)
 
-	query = "SELECT " + paymentCols +
+	query2 := "SELECT " + paymentCols +
 		" FROM payment ORDER BY orderid"
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
+	mock.ExpectQuery(regexp.QuoteMeta(query2)).WillReturnRows(rows2)
 
-	pay, err := GetPayments(db)
-	orders[0].Payment = pay[0]
+	rows3 := sqlxmock.NewRows(strings.Split(itemCols, ","))
 
-	d := or.Delivery
-	rows = sqlxmock.NewRows(strings.Split(deliveryCols, ",")).
-		AddRow(d.Name, d.Phone, d.Zip, d.City,
-			d.Address, d.Region, d.Email)
+	query3 := "SELECT " + itemCols +
+		" FROM items ORDER BY orderid"
 
-	query = "SELECT " + deliveryCols +
-		" FROM delivery ORDER BY orderid"
+	mock.ExpectQuery(regexp.QuoteMeta(query3)).WillReturnRows(rows3)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
+	rows4 := sqlxmock.NewRows([]string{"orderid", "count(*)"})
 
-	deliveries, err := GetDeliveries(db)
-	orders[0].Delivery = deliveries[0]
+	query4 := "SELECT orderid, count(*)" +
+		" FROM items GROUP BY orderid ORDER BY orderid"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query4)).WillReturnRows(rows4)
+
+	orders, err := LoadOrders(db)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, orders)
